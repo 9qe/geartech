@@ -1,0 +1,363 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  SUPER_ADMIN
+  MANAGER
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  IN_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  COD
+  CLIQ
+}
+
+enum PaymentStatus {
+  PENDING
+  AWAITING_VERIFICATION
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum MovementType {
+  SALE
+  RESTOCK
+  ADJUSTMENT
+  RETURN
+}
+
+enum HomepageKey {
+  HERO
+  ANNOUNCEMENT
+}
+
+// ---------- Models ----------
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(MANAGER)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  lastLoginAt  DateTime?
+
+  sessions AdminSession[]
+  auditLogs AuditLog[]
+}
+
+model AdminSession {
+  id        String    @id @default(cuid())
+  adminId   String
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  admin AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  adminId    String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   String? // JSON string
+  createdAt  DateTime @default(now())
+
+  admin AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  nameAr      String
+  nameEn      String
+  descriptionAr String?
+  descriptionEn String?
+  image       String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@index([isActive, sortOrder])
+}
+
+model Product {
+  id               String    @id @default(cuid())
+  slug             String    @unique
+  titleAr          String
+  titleEn          String
+  descriptionAr    String
+  descriptionEn    String
+  specifications   String? // JSON array of {labelAr,labelEn,valueAr,valueEn}
+  priceFils        Int
+  compareAtFils    Int?
+  costFils         Int       @default(0)
+  sku              String?   @unique
+  stockQuantity    Int       @default(0)
+  trackInventory   Boolean   @default(true)
+  categoryId       String?
+  badgeLabel       String?
+  isActive         Boolean   @default(true)
+  isFeatured       Boolean   @default(false)
+  isBundleEligible Boolean   @default(false)
+  sortOrder        Int       @default(0)
+  archivedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  category  Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  media     ProductMedia[]
+  orderItems OrderItem[]
+  inventoryMovements InventoryMovement[]
+
+  @@index([isActive, isFeatured])
+  @@index([categoryId])
+  @@index([slug])
+}
+
+model ProductMedia {
+  id          String    @id @default(cuid())
+  productId   String
+  mediaType   MediaType
+  originalUrl String
+  optimizedUrl String?
+  posterUrl   String?
+  altTextAr   String?
+  altTextEn   String?
+  sortOrder   Int       @default(0)
+  isPrimary   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+}
+
+model BundleRule {
+  id                  String   @id @default(cuid())
+  minimumEligibleItems Int
+  discountPercentage  Int
+  freeDelivery        Boolean  @default(false)
+  enabled             Boolean  @default(true)
+  priority            Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([enabled, priority])
+}
+
+model Bundle {
+  id            String   @id @default(cuid())
+  titleAr       String
+  titleEn       String
+  descriptionAr String?
+  descriptionEn String?
+  productIds    String // JSON array of product ids
+  fixedPriceFils Int?
+  discountPct   Int?
+  image         String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Reel {
+  id             String   @id @default(cuid())
+  titleAr        String
+  titleEn        String
+  videoUrl       String
+  posterUrl      String?
+  productId      String?
+  manualViewLabel String?
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model HomepageContent {
+  id            String      @id @default(cuid())
+  contentKey    HomepageKey
+  locale        String      // "ar" | "en" | "all"
+  headline      String?
+  subheadline   String?
+  body          String?
+  imageUrl      String?
+  videoUrl      String?
+  ctaText       String?
+  ctaDestination String?
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([contentKey, locale])
+}
+
+model Governorate {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  nameAr    String
+  nameEn    String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+
+  shippingRates ShippingRate[]
+  orders        Order[]
+
+  @@index([isActive, sortOrder])
+}
+
+model ShippingRate {
+  id               String   @id @default(cuid())
+  governorateId    String   @unique
+  deliveryFeeFils  Int
+  actualCostFils   Int      @default(0)
+  isConfigured     Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+
+  governorate Governorate @relation(fields: [governorateId], references: [id], onDelete: Cascade)
+}
+
+model Customer {
+  id             String   @id @default(cuid())
+  fullName       String
+  phone          String
+  normalizedPhone String  @unique
+  email          String?
+  createdAt      DateTime @default(now())
+
+  orders Order[]
+}
+
+model Order {
+  id                 String        @id @default(cuid())
+  orderNumber        String        @unique
+  customerId         String?
+  customerNameSnapshot String
+  customerPhoneSnapshot String
+  governorateId      String?
+  addressSnapshot    String // JSON
+  orderStatus        OrderStatus   @default(NEW)
+  paymentMethod      PaymentMethod
+  paymentStatus      PaymentStatus @default(PENDING)
+  subtotalFils       Int
+  discountFils       Int           @default(0)
+  shippingFeeFils    Int           @default(0)
+  totalFils          Int
+  actualDeliveryCostFils Int       @default(0)
+  customerNotes      String?
+  cliqReference      String?
+  paymentProofUrl    String?
+  idempotencyKey     String?       @unique
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  customer    Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  governorate Governorate? @relation(fields: [governorateId], references: [id], onDelete: SetNull)
+  items       OrderItem[]
+  statusHistory OrderStatusHistory[]
+
+  @@index([createdAt])
+  @@index([orderStatus])
+  @@index([paymentStatus])
+}
+
+model OrderItem {
+  id                 String @id @default(cuid())
+  orderId            String
+  productId          String?
+  productTitleSnapshot String
+  productSkuSnapshot  String?
+  unitPriceFils      Int
+  unitCostFils       Int    @default(0)
+  quantity           Int
+  lineTotalFils      Int
+  discountAllocatedFils Int @default(0)
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(cuid())
+  orderId   String
+  fromStatus OrderStatus?
+  toStatus  OrderStatus
+  note      String?
+  changedBy String? // admin id
+  createdAt DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model InventoryMovement {
+  id             String        @id @default(cuid())
+  productId      String
+  quantityChange Int
+  movementType   MovementType
+  reference      String?
+  note           String?
+  createdAt      DateTime      @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model StoreSetting {
+  id          String   @id @default(cuid())
+  settingKey  String   @unique
+  settingValue String // JSON string
+  updatedAt   DateTime @updatedAt
+}
+
+model CurrencyRate {
+  id            String   @id @default(cuid())
+  baseCurrency  String
+  targetCurrency String
+  exchangeRate  Float
+  updatedAt     DateTime @updatedAt
+  source        String?
+
+  @@unique([baseCurrency, targetCurrency])
+}

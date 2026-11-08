@@ -48,7 +48,7 @@ const parseSteps = (raw: string): string[] => {
   return parts.length > 0 ? parts : [raw.trim()];
 };
 
-export default function ProductDetailClient({ slug }: { slug: string }) {
+export default function ProductDetailClient({ slug, product: productProp }: { slug: string; product?: Product | null }) {
   const lang = useStore((s) => s.lang);
   const adminProducts = useStore((s) => s.adminProducts);
   const addToCart = useStore((s) => s.addToCart);
@@ -59,8 +59,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
     [adminProducts]
   );
   const product = useMemo(
-    () => allProducts.find((p) => p.slug === slug),
-    [allProducts, slug]
+    () => productProp ?? allProducts.find((p) => p.slug === slug) ?? null,
+    [productProp, allProducts, slug]
   );
 
   const [mainImage, setMainImage] = useState<string | null>(null);
