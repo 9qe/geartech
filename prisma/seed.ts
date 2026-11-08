@@ -38,7 +38,7 @@ async function main() {
   for (let i = 0; i < PRODUCTS.length; i++) {
     const p = PRODUCTS[i];
     const cat = await prisma.category.findUnique({ where: { slug: p.category } });
-    await prisma.product.upsert({
+    const prod = await prisma.product.upsert({
       where: { slug: p.slug },
       update: {
         titleAr: p.title.ar,
@@ -77,6 +77,23 @@ async function main() {
         categoryId: cat?.id ?? null,
       },
     });
+    // media: bespoke illustration
+    const imgUrl = `/products/illustrations/${p.slug}.svg`;
+    const existingMedia = await prisma.productMedia.findFirst({ where: { productId: prod.id } });
+    if (!existingMedia) {
+      await prisma.productMedia.create({
+        data: {
+          productId: prod.id,
+          mediaType: "IMAGE",
+          originalUrl: imgUrl,
+          optimizedUrl: imgUrl,
+          altTextAr: p.title.ar,
+          altTextEn: p.title.en,
+          sortOrder: 0,
+          isPrimary: true,
+        },
+      });
+    }
   }
 
   // Governorates — all 12 official (fees only where previously configured; others unconfigured)

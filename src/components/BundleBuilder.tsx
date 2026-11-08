@@ -22,7 +22,7 @@ import { bestBundleFor, useStore } from "@/store/useStore";
 import { useCartUI } from "@/components/CartDrawer";
 import { cn, t } from "@/lib/utils";
 
-export default function BundleBuilder() {
+export default function BundleBuilder({ products: productsProp }: { products?: Product[] } = {}) {
   const lang = useStore((s) => s.lang);
   const adminProducts = useStore((s) => s.adminProducts);
   const addToCart = useStore((s) => s.addToCart);
@@ -31,15 +31,16 @@ export default function BundleBuilder() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
 
   const products = useMemo(() => {
+    const source = productsProp && productsProp.length ? productsProp : [...PRODUCTS, ...adminProducts];
     const seen = new Set<string>();
     const list: Product[] = [];
-    for (const p of [...PRODUCTS, ...adminProducts]) {
+    for (const p of source) {
       if (seen.has(p.id)) continue;
       seen.add(p.id);
       list.push(p);
     }
     return list;
-  }, [adminProducts]);
+  }, [productsProp, adminProducts]);
 
   const isRTL = lang === "ar";
   const selected = products.filter((p) => (qtyMap[p.id] ?? 0) > 0);

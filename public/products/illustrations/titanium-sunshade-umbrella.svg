@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0E1014"/><stop offset="100%" stop-color="#060709"/></linearGradient></defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+  <!-- umbrella top view -->
+  <g transform="translate(200,130)">
+    <ellipse cx="0" cy="0" rx="110" ry="110" fill="#1a1f2b" stroke="rgba(255,255,255,0.08)"/>
+    <!-- ribs -->
+    <g stroke="rgba(20,184,166,0.35)" stroke-width="1.5">
+      <line x1="0" y1="0" x2="0" y2="-110"/><line x1="0" y1="0" x2="55" y2="-95"/><line x1="0" y1="0" x2="95" y2="-55"/>
+      <line x1="0" y1="0" x2="110" y2="0"/><line x1="0" y1="0" x2="95" y2="55"/><line x1="0" y1="0" x2="55" y2="95"/>
+      <line x1="0" y1="0" x2="0" y2="110"/><line x1="0" y1="0" x2="-55" y2="95"/><line x1="0" y1="0" x2="-95" y2="55"/>
+      <line x1="0" y1="0" x2="-110" y2="0"/><line x1="0" y1="0" x2="-95" y2="-55"/><line x1="0" y1="0" x2="-55" y2="-95"/>
+    </g>
+    <!-- reflective titanium surface highlight -->
+    <path d="M-60 -90 Q0 -120 60 -90 Q30 -60 0 -70 Q-30 -60 -60 -90 Z" fill="#14B8A6" opacity="0.08"/>
+    <circle cx="0" cy="0" r="6" fill="#14B8A6"/>
+  </g>
+  <!-- leather pouch -->
+  <rect x="150" y="240" width="100" height="28" rx="6" fill="#1a1f2b" stroke="rgba(255,255,255,0.08)"/>
+  <text x="200" y="258" text-anchor="middle" font-family="Inter, system-ui" font-size="9" fill="#94A3B8">LEATHER POUCH</text>
+  <text x="200" y="285" text-anchor="middle" font-family="Inter, system-ui" font-size="11" fill="#94A3B8" letter-spacing="2">REFLECTIVE SUNSHADE</text>
+</svg>

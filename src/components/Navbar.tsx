@@ -14,28 +14,6 @@ const NAV_LINKS: { href: string; ar: string; en: string }[] = [
   { href: "#bundles", ar: "الباقات", en: "Bundles" },
 ];
 
-function GearMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true" className={className}>
-      <g fill="currentColor">
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
-          <rect
-            key={angle}
-            x="22"
-            y="1.5"
-            width="4"
-            height="11"
-            rx="1.5"
-            transform={`rotate(${angle} 24 24)`}
-          />
-        ))}
-        <circle cx="24" cy="24" r="16" />
-      </g>
-      <circle cx="24" cy="24" r="6.5" fill="#090A0F" />
-    </svg>
-  );
-}
-
 export default function Navbar() {
   const lang = useStore((s) => s.lang);
   const setLang = useStore((s) => s.setLang);
@@ -95,12 +73,11 @@ export default function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-2 text-volt"
+          className="flex shrink-0 items-center gap-2"
           aria-label="GearTech"
         >
-          <GearMark className="h-8 w-8" />
-          <span className="text-lg font-extrabold tracking-tight text-white">
-            Gear<span className="text-glow-volt text-volt">Tech</span>
+          <span className="text-xl font-extrabold tracking-tight text-white">
+            Gear<span className="text-[#14B8A6]">Tech</span>
           </span>
         </Link>
 
