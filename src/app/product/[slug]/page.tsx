@@ -1,4 +1,5 @@
 import { getProductBySlug, getProducts } from "@/lib/catalog";
+import { assetPath } from "@/lib/paths";
 import ProductDetailClient from "./ProductDetailClient";
 import type { Product } from "@/data/products";
 import type { ProductDTO } from "@/lib/catalog";
@@ -13,7 +14,7 @@ function toStatic(p: ProductDTO): Product {
     compareAt: p.compareAt ?? p.price,
     badge: p.badge,
     category: (p.categorySlug ?? "gadgets") as Product["category"],
-    image: p.primaryImage ?? "/brand/no-image.svg",
+    image: p.primaryImage ?? assetPath("/brand/no-image.svg") ?? "",
     gallery: (p.media ?? []).filter((m) => m.type === "IMAGE").map((m) => m.url),
     specs: p.specs,
     installation: { ar: "", en: "" },

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { prisma } from "./db";
 import { fromFils } from "./money";
+import { assetPath } from "./paths";
 
 export interface ProductDTO {
   id: string;
@@ -30,8 +31,8 @@ function mapProduct(p: any): ProductDTO {
   const media = (p.media ?? []).map((m: any) => ({
     id: m.id,
     type: m.mediaType,
-    url: m.optimizedUrl || m.originalUrl,
-    poster: m.posterUrl,
+    url: assetPath(m.optimizedUrl || m.originalUrl) ?? "",
+    poster: assetPath(m.posterUrl),
     alt: { ar: m.altTextAr || p.titleAr, en: m.altTextEn || p.titleEn },
     isPrimary: m.isPrimary,
     sortOrder: m.sortOrder,
@@ -103,7 +104,7 @@ export async function getCategories() {
     where: { isActive: true },
     orderBy: { sortOrder: "asc" },
   });
-  return rows.map((c) => ({ id: c.id, slug: c.slug, name: { ar: c.nameAr, en: c.nameEn }, image: c.image, description: { ar: c.descriptionAr, en: c.descriptionEn } }));
+  return rows.map((c) => ({ id: c.id, slug: c.slug, name: { ar: c.nameAr, en: c.nameEn }, image: assetPath(c.image), description: { ar: c.descriptionAr, en: c.descriptionEn } }));
 }
 
 export async function getReels() {
@@ -125,7 +126,7 @@ export async function getReels() {
       id: r.id,
       title: { ar: r.titleAr, en: r.titleEn },
       videoUrl: r.videoUrl,
-      poster: r.posterUrl,
+      poster: assetPath(r.posterUrl),
       viewLabel: r.manualViewLabel,
       sortOrder: r.sortOrder,
       product: p
@@ -134,7 +135,7 @@ export async function getReels() {
             slug: p.slug,
             title: { ar: p.titleAr, en: p.titleEn },
             price: fromFils(p.priceFils),
-            image: p.media?.[0]?.optimizedUrl || p.media?.[0]?.originalUrl || null,
+            image: assetPath(p.media?.[0]?.optimizedUrl || p.media?.[0]?.originalUrl) ?? null,
           }
         : null,
     };

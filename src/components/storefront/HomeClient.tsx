@@ -24,6 +24,7 @@ import {
 import type { Product } from "@/data/products";
 import type { ProductDTO } from "@/lib/catalog";
 import type { ReelCard } from "@/components/ReelsFeed";
+import { assetPath } from "@/lib/paths";
 import { useStore } from "@/store/useStore";
 import { cn, t } from "@/lib/utils";
 
@@ -130,7 +131,7 @@ export default function HomeClient({
         badge: p.badge,
 
         category: (p.categorySlug ?? "gadgets") as Product["category"],
-        image: p.primaryImage ?? "/brand/no-image.svg",
+        image: p.primaryImage ?? assetPath("/brand/no-image.svg") ?? "",
         gallery: p.media.filter((m) => m.type === "IMAGE").map((m) => m.url),
         specs: p.specs,
         installation: { ar: "", en: "" },
@@ -232,7 +233,7 @@ export default function HomeClient({
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/7 bg-[#0E1014]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={mappedProducts[0]?.image ?? "/brand/no-image.svg"}
+                src={mappedProducts[0]?.image ?? assetPath("/brand/no-image.svg") ?? ""}
                 alt={mappedProducts[0] ? mappedProducts[0].title[lang] : "GearTech"}
                 className="h-full w-full object-cover"
               />
