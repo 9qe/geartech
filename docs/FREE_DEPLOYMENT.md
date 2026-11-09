@@ -49,6 +49,20 @@ Then open http://localhost:3000/admin/login
 ## Optional Public Demo (GitHub Pages)
 The published demo at https://9qe.github.io/geartech/ is a static export of the storefront (DB baked at build time). Admin/checkout server features require the Node app (`npm start`).
 
+### Republishing the static demo
+Park `src/app/{api,actions,admin,checkout}` + `src/components/admin` out of the tree, strip
+`export const dynamic = "force-dynamic"` from `src/app/page.tsx`, then:
+```
+set NEXT_BASE_PATH=/geartech
+set NEXT_PUBLIC_BASE_PATH=/geartech   # prefixes public/ asset URLs (src/lib/paths.ts)
+set NEXT_PUBLIC_STATIC=1
+set NEXT_STATIC_EXPORT=1
+npm run build
+```
+Commit `out/` to the `gh-pages` branch **with a `.nojekyll` file at the repo root** —
+GitHub Pages' built-in Jekyll silently 404s every `_next/*` asset otherwise, and the
+site renders as an unstyled raw page. Restore the parked directories afterwards.
+
 ## Free Hosting Notes
 - Render/Railway/Fly free tiers exist but require accounts and have sleep limits.
 - For 24/7 free hosting, self-host on your own machine or a free VPS (Oracle Cloud Free Tier — requires account, not mandatory).
