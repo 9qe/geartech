@@ -18,6 +18,7 @@ import {
 import { placeOrderAction } from "@/app/actions/checkout";
 import { bestBundleFor, cartSubtotal, deliveryFeeFor, useStore } from "@/store/useStore";
 import { BRAND, formatJOD } from "@/data/products";
+import { fromFils } from "@/lib/money";
 import { cn, t } from "@/lib/utils";
 
 type PaymentMethod = "cod" | "cliq";
@@ -33,19 +34,27 @@ interface FormErrors {
 const PHONE_RE = /^07\d{8}$/;
 
 interface CheckoutProps {
-  governorates: { id: string; label: { ar: string; en: string }; deliveryFee: number }[];
+  governorates: { id: string; label: { ar: string; en: string }; deliveryFee: number | null }[];
   freeShippingThreshold: number;
   whatsappNumber: string | null;
   cliq: { alias: string; beneficiary: string; iban: string; instructions: string };
 }
 
 export default function CheckoutClient(props: CheckoutProps) {
-  const { governorates: GOVERNORATES = [], freeShippingThreshold: FREE_DELIVERY_THRESHOLD = 25, whatsappNumber: WHATSAPP_NUMBER = null } = props;
+  const {
+    governorates: GOVERNORATES = [],
+    freeShippingThreshold: FREE_DELIVERY_THRESHOLD = 25,
+    whatsappNumber: WHATSAPP_NUMBER = null,
+    cliq,
+  } = props;
   const lang = useStore((s) => s.lang);
   const cart = useStore((s) => s.cart);
   const setQty = useStore((s) => s.setQty);
   const removeFromCart = useStore((s) => s.removeFromCart);
   const clearCart = useStore((s) => s.clearCart);
+  const placed = useStore((s) => s.placedOrder);
+  const setPlacedOrder = useStore((s) => s.setPlacedOrder);
+  const clearPlacedOrder = useStore((s) => s.clearPlacedOrder);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -55,7 +64,6 @@ export default function CheckoutClient(props: CheckoutProps) {
   const [notes, setNotes] = useState("");
   const [payment, setPayment] = useState<PaymentMethod>("cod");
   const [errors, setErrors] = useState<FormErrors>({});
-  const [placedOrder, setPlacedOrder] = useState<string | null>(null);
 
   const itemTotal = cart.reduce((sum, i) => sum + i.qty, 0);
   const subtotal = cartSubtotal(cart);
@@ -66,10 +74,10 @@ export default function CheckoutClient(props: CheckoutProps) {
   const discountedSubtotal = subtotal - discountAmount;
 
   const governorate = GOVERNORATES.find((g) => g.id === governorateId);
-  const governorateFee = governorate?.deliveryFee ?? 0;
+  const governorateFee = governorate?.deliveryFee ?? null;
   const deliveryFee = deliveryFeeFor(
     discountedSubtotal,
-    governorateFee,
+    governorateFee ?? 0,
     bundle?.freeDelivery ?? false
   );
   const total = discountedSubtotal + deliveryFee;
@@ -117,6 +125,11 @@ export default function CheckoutClient(props: CheckoutProps) {
     if (!governorateId) {
       next.governorate =
         lang === "ar" ? "اختر المحافظة" : "Select your governorate";
+    } else if (governorate?.deliveryFee == null) {
+      next.governorate =
+        lang === "ar"
+          ? "التوصيل غير متاح لهذه المحافظة حالياً — اختر محافظة أخرى أو تواصل معنا"
+          : "Delivery is not configured for this governorate yet — pick another or contact us";
     }
     if (address.trim().length < 8) {
       next.address =
@@ -246,7 +259,27 @@ export default function CheckoutClient(props: CheckoutProps) {
         setPlaceError(res.error);
         return;
       }
-      setPlacedOrder(res.orderNumber);
+      // Confirmation data comes from the persisted server receipt —
+      // never from cart state, which is cleared right after.
+      const r = res.receipt;
+      if (r) {
+        setPlacedOrder({
+          orderNumber: r.orderNumber,
+          totalFils: r.totalFils,
+          subtotalFils: r.subtotalFils,
+          discountFils: r.discountFils,
+          shippingFeeFils: r.shippingFeeFils,
+          paymentMethod: r.paymentMethod,
+          paymentStatus: r.paymentStatus,
+          orderStatus: r.orderStatus,
+          createdAtISO: r.createdAtISO,
+          customerName: r.customerName,
+          customerPhone: r.customerPhone,
+          governorate: r.governorate,
+          freeDelivery: r.freeDelivery,
+          items: r.items,
+        });
+      }
       clearCart();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
@@ -256,15 +289,13 @@ export default function CheckoutClient(props: CheckoutProps) {
     }
   };
 
-  const followUpMessage = () =>
-    encodeURIComponent(
+  /* ── Success ────────────────────────────────────────────── */
+  if (placed) {
+    const waReceipt = encodeURIComponent(
       lang === "ar"
-        ? `مرحباً ${BRAND.name} — بخصوص الطلب ${placedOrder} بإسمي ${name.trim()}.`
-        : `Hi ${BRAND.name} — following up on order ${placedOrder} under ${name.trim()}.`
+        ? `GearTechJo — تأكيد الطلب\n\nرقم الطلب: ${placed.orderNumber}\n\nبيانات العميل:\nالاسم: ${placed.customerName}\nالهاتف: ${placed.customerPhone}\nالمحافظة: ${placed.governorate?.ar ?? "—"}\n\nتفاصيل الطلب:\n${placed.items.map((it, i) => `${i + 1}. ${it.titleAr}\n   الكمية: ${it.quantity}\n   سعر القطعة: ${formatJOD(fromFils(it.unitPriceFils))} د.أ\n   الإجمالي: ${formatJOD(fromFils(it.lineTotalFils))} د.أ`).join("\n")}\n\nالملخص المالي:\nالمجموع الفرعي: ${formatJOD(fromFils(placed.subtotalFils))} د.أ\n${placed.discountFils > 0 ? `خصم الباقة: -${formatJOD(fromFils(placed.discountFils))} د.أ\n` : ""}التوصيل: ${placed.freeDelivery || placed.shippingFeeFils === 0 ? "مجاني" : `-${formatJOD(fromFils(placed.shippingFeeFils))} د.أ`}\nالإجمالي النهائي: ${formatJOD(fromFils(placed.totalFils))} د.أ\n\nطريقة الدفع: ${placed.paymentMethod === "COD" ? "الدفع عند الاستلام" : "تحويل CliQ"}\nحالة الدفع: ${placed.paymentStatus === "PAID" ? "مدفوع" : "قيد الانتظار"}\n\nشكراً لثقتكم بـ GearTechJo.`
+        : `GearTechJo — Order Confirmation\n\nOrder: ${placed.orderNumber}\n\nCustomer:\nName: ${placed.customerName}\nPhone: ${placed.customerPhone}\nGovernorate: ${placed.governorate?.en ?? "—"}\n\nItems:\n${placed.items.map((it, i) => `${i + 1}. ${it.titleAr}\n   Qty: ${it.quantity}\n   Unit: ${formatJOD(fromFils(it.unitPriceFils))}\n   Total: ${formatJOD(fromFils(it.lineTotalFils))}`).join("\n")}\n\nSummary:\nSubtotal: ${formatJOD(fromFils(placed.subtotalFils))} JOD\n${placed.discountFils > 0 ? `Bundle discount: -${formatJOD(fromFils(placed.discountFils))} JOD\n` : ""}Delivery: ${placed.freeDelivery || placed.shippingFeeFils === 0 ? "Free" : formatJOD(fromFils(placed.shippingFeeFils)) + " JOD"}\nFinal total: ${formatJOD(fromFils(placed.totalFils))} JOD\n\nPayment: ${placed.paymentMethod}\nStatus: ${placed.paymentStatus}\n\nThank you for choosing GearTechJo.`
     );
-
-  /* ── Success state ─────────────────────────────────────── */
-  if (placedOrder) {
     return (
       <div className="min-h-screen bg-obsidian">
         <div className="mx-auto flex max-w-lg flex-col items-center gap-5 px-4 py-20 text-center">
@@ -288,7 +319,7 @@ export default function CheckoutClient(props: CheckoutProps) {
               className="mt-1 text-3xl font-black text-volt text-glow-volt"
               dir="ltr"
             >
-              {placedOrder}
+              {placed.orderNumber}
             </p>
 
             <div className="mt-5 flex flex-col gap-2 border-t border-white/10 pt-4 text-start text-xs">
@@ -296,14 +327,14 @@ export default function CheckoutClient(props: CheckoutProps) {
                 <span className="text-white/50">
                   {lang === "ar" ? "الاسم" : "Name"}
                 </span>
-                <span className="font-bold text-white/90">{name.trim()}</span>
+                <span className="font-bold text-white/90">{placed.customerName}</span>
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-white/50">
                   {lang === "ar" ? "الهاتف" : "Phone"}
                 </span>
                 <span className="font-bold text-white/90" dir="ltr">
-                  {phone.trim()}
+                  {placed.customerPhone}
                 </span>
               </div>
               <div className="flex justify-between gap-3">
@@ -311,20 +342,46 @@ export default function CheckoutClient(props: CheckoutProps) {
                   {lang === "ar" ? "المحافظة" : "Governorate"}
                 </span>
                 <span className="font-bold text-white/90">
-                  {governorate ? t(governorate.label, lang) : "—"}
+                  {placed.governorate
+                    ? lang === "ar"
+                      ? placed.governorate.ar
+                      : placed.governorate.en
+                    : "—"}
                 </span>
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-white/50">
                   {lang === "ar" ? "طريقة الدفع" : "Payment"}
                 </span>
-                <span className="font-bold text-white/90">{paymentLabel}</span>
+                <span className="font-bold text-white/90">
+                  {placed.paymentMethod === "COD"
+                    ? lang === "ar"
+                      ? "الدفع عند الاستلام"
+                      : "Cash on Delivery"
+                    : paymentLabel}
+                </span>
               </div>
+              {placed.items.length > 0 && (
+                <div className="flex flex-col gap-1.5 border-y border-white/10 py-2">
+                  {placed.items.map((it) => (
+                    <div key={it.titleAr} className="flex justify-between gap-3">
+                      <span className="text-white/60">
+                        {it.titleAr} × {it.quantity}
+                      </span>
+                      <span className="font-bold text-white/85" dir="ltr">
+                        {formatJOD(fromFils(it.lineTotalFils))}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex justify-between gap-3">
                 <span className="text-white/50">
                   {lang === "ar" ? "الإجمالي" : "Total"}
                 </span>
-                <span className="font-black text-volt">{formatJOD(total)}</span>
+                <span className="font-black text-volt">
+                  {formatJOD(fromFils(placed.totalFils))}
+                </span>
               </div>
             </div>
 
@@ -335,20 +392,29 @@ export default function CheckoutClient(props: CheckoutProps) {
             </div>
           </div>
 
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${followUpMessage()}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-volt px-6 py-3.5 text-sm font-black text-obsidian transition-all hover:shadow-[0_0_24px_rgba(0,245,212,0.35)]"
-          >
-            {lang === "ar"
-              ? "تابع الطلب عبر الواتساب"
-              : "Follow up on WhatsApp"}
-            <Zap className="h-4 w-4" />
-          </a>
+          {WHATSAPP_NUMBER ? (
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${waReceipt}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-volt px-6 py-3.5 text-sm font-black text-obsidian transition-all hover:shadow-[0_0_24px_rgba(0,245,212,0.35)]"
+            >
+              {lang === "ar"
+                ? "تابع الطلب عبر الواتساب"
+                : "Follow up on WhatsApp"}
+              <Zap className="h-4 w-4" />
+            </a>
+          ) : (
+            <p className="text-center text-xs text-white/40">
+              {lang === "ar"
+                ? "رقم واتساب المتجر غير مفعّل بعد — فريق جير تيك سيتواصل معك."
+                : "Store WhatsApp is not configured yet — our team will contact you."}
+            </p>
+          )}
 
           <Link
             href="/"
+            onClick={() => clearPlacedOrder()}
             className="flex items-center gap-2 text-xs font-black text-white/55 hover:text-volt"
           >
             <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
@@ -536,13 +602,17 @@ export default function CheckoutClient(props: CheckoutProps) {
                         className="bg-carbon text-white"
                       >
                         {t(g.label, lang)} —{" "}
-                        {lang === "ar"
-                          ? g.deliveryFee === 0
-                            ? "توصيل مجاني"
-                            : `التوصيل ${formatJOD(g.deliveryFee)}`
-                          : g.deliveryFee === 0
-                            ? "free delivery"
-                            : `delivery ${formatJOD(g.deliveryFee)}`}
+                        {g.deliveryFee == null
+                          ? lang === "ar"
+                            ? "التوصيل غير متاح"
+                            : "delivery unavailable"
+                          : lang === "ar"
+                            ? g.deliveryFee === 0
+                              ? "توصيل مجاني"
+                              : `التوصيل ${formatJOD(g.deliveryFee)}`
+                            : g.deliveryFee === 0
+                              ? "free delivery"
+                              : `delivery ${formatJOD(g.deliveryFee)}`}
                       </option>
                     ))}
                   </select>
@@ -691,23 +761,37 @@ export default function CheckoutClient(props: CheckoutProps) {
                           : "CliQ Transfer Instructions"}
                       </p>
                       <div className="flex flex-col gap-1.5">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="text-white/55">
-                            {lang === "ar" ? "اسم المستلم" : "Recipient name"}
-                          </span>
-                          <span className="font-black text-white">
-                            {BRAND.name}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="text-white/55">IBAN</span>
-                          <span
-                            className="font-black text-white"
-                            dir="ltr"
-                          >
-                            JO94 CBJO 0010 0000 0000 0131 0003 02
-                          </span>
-                        </div>
+                        {(cliq.alias || cliq.beneficiary) && (
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-white/55">
+                              {lang === "ar" ? "اسم المستلم" : "Recipient name"}
+                            </span>
+                            <span className="font-black text-white">
+                              {cliq.beneficiary || cliq.alias}
+                            </span>
+                          </div>
+                        )}
+                        {cliq.alias && (
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-white/55">
+                              {lang === "ar" ? "رقم CliQ" : "CliQ alias"}
+                            </span>
+                            <span className="font-black text-white" dir="ltr">
+                              {cliq.alias}
+                            </span>
+                          </div>
+                        )}
+                        {cliq.iban && (
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-white/55">IBAN</span>
+                            <span
+                              className="font-black text-white"
+                              dir="ltr"
+                            >
+                              {cliq.iban}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <span className="text-white/55">
                             {lang === "ar" ? "المبلغ" : "Amount"}
@@ -717,11 +801,11 @@ export default function CheckoutClient(props: CheckoutProps) {
                           </span>
                         </div>
                       </div>
-                      <p className="mt-3 rounded-lg bg-racing/15 p-2.5 font-bold text-racing">
-                        {lang === "ar"
-                          ? "بعد التحويل أرسل صورة الإيصال عبر الواتساب لتفعيل الطلب."
-                          : "After transferring, send the screenshot via WhatsApp to confirm the order."}
-                      </p>
+                      {cliq.instructions && (
+                        <p className="mt-3 rounded-lg bg-racing/15 p-2.5 font-bold text-racing">
+                          {cliq.instructions}
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                 )}

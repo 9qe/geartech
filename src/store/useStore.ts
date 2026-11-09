@@ -32,6 +32,30 @@ export interface PricingRule {
   value: number;
 }
 
+export interface PlacedOrderItem {
+  titleAr: string;
+  quantity: number;
+  unitPriceFils: number;
+  lineTotalFils: number;
+}
+
+export interface PlacedOrder {
+  orderNumber: string;
+  totalFils: number;
+  subtotalFils: number;
+  discountFils: number;
+  shippingFeeFils: number;
+  paymentMethod: "COD" | "CLIQ";
+  paymentStatus: string;
+  orderStatus: string;
+  createdAtISO: string;
+  customerName: string;
+  customerPhone: string;
+  governorate: { ar: string; en: string } | null;
+  freeDelivery: boolean;
+  items: PlacedOrderItem[];
+}
+
 interface State {
   lang: Lang;
   cart: CartItem[];
@@ -40,12 +64,15 @@ interface State {
   pricingRules: PricingRule[];
   searchQuery: string;
   activeCategory: string | "all";
+  placedOrder: PlacedOrder | null;
 
   setLang: (lang: Lang) => void;
   addToCart: (product: Product, qty?: number) => void;
   removeFromCart: (productId: string) => void;
   setQty: (productId: string, qty: number) => void;
   clearCart: () => void;
+  setPlacedOrder: (order: PlacedOrder) => void;
+  clearPlacedOrder: () => void;
   openQuickView: (slug: string) => void;
   closeQuickView: () => void;
   setSearchQuery: (q: string) => void;
@@ -66,6 +93,7 @@ export const useStore = create<State>()(
       pricingRules: [],
       searchQuery: "",
       activeCategory: "all",
+      placedOrder: null,
 
       setLang: (lang) => set({ lang }),
 
@@ -146,6 +174,9 @@ export const useStore = create<State>()(
         set((state) => ({
           pricingRules: state.pricingRules.filter((r) => r.id !== id),
         })),
+
+      setPlacedOrder: (order) => set({ placedOrder: order }),
+      clearPlacedOrder: () => set({ placedOrder: null }),
     }),
     {
       name: "geartech-store",
@@ -154,6 +185,7 @@ export const useStore = create<State>()(
         cart: state.cart,
         adminProducts: state.adminProducts,
         pricingRules: state.pricingRules,
+        placedOrder: state.placedOrder,
       }),
     }
   )

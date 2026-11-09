@@ -157,6 +157,16 @@ export async function createOrder(raw: z.infer<typeof checkoutSchema> & { cart: 
     return o;
   });
 
+  // Persisted receipt — read back after commit so confirmation and
+  // WhatsApp follow-up use DB truth, never client cart state.
+  const persisted = await prisma.order.findUnique({
+    where: { orderNumber },
+    include: {
+      governorate: true,
+      items: true,
+    },
+  });
+
   return {
     ok: true as const,
     orderId: order.id,
@@ -166,5 +176,31 @@ export async function createOrder(raw: z.infer<typeof checkoutSchema> & { cart: 
     discountFils,
     shippingFeeFils: shipping.feeFils,
     freeDelivery: shipping.freeDelivery || bundle.freeDelivery,
+    receipt: persisted
+      ? {
+          orderNumber: persisted.orderNumber,
+          totalFils: persisted.totalFils,
+          subtotalFils: persisted.subtotalFils,
+          discountFils: persisted.discountFils,
+          shippingFeeFils: persisted.shippingFeeFils,
+          paymentMethod: persisted.paymentMethod,
+          paymentStatus: persisted.paymentStatus,
+          orderStatus: persisted.orderStatus,
+          createdAtISO: persisted.createdAt.toISOString(),
+          customerName: persisted.customerNameSnapshot,
+          customerPhone: persisted.customerPhoneSnapshot,
+          addressSnapshot: persisted.addressSnapshot,
+          governorate: persisted.governorate
+            ? { ar: persisted.governorate.nameAr, en: persisted.governorate.nameEn }
+            : null,
+          freeDelivery: shipping.freeDelivery || bundle.freeDelivery,
+          items: persisted.items.map((it) => ({
+            titleAr: it.productTitleSnapshot,
+            quantity: it.quantity,
+            unitPriceFils: it.unitPriceFils,
+            lineTotalFils: it.lineTotalFils,
+          })),
+        }
+      : null,
   };
 }

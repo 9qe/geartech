@@ -508,9 +508,16 @@ export const GOVERNORATES: {
   deliveryFee: number;
 }[] = [
   { id: "amman", label: { ar: "عمّان", en: "Amman" }, deliveryFee: 2.0 },
-  { id: "zarqa", label: { ar: "الزرقاء", en: "Zarqa" }, deliveryFee: 3.0 },
+  { id: "zarqa", label: { ar: "الزرقاء", en: "Zarqa" }, deliveryFee: 2.5 },
+  { id: "balqa", label: { ar: "البلقاء", en: "Balqa" }, deliveryFee: 2.5 },
+  { id: "madaba", label: { ar: "مادبا", en: "Madaba" }, deliveryFee: 2.5 },
   { id: "irbid", label: { ar: "إربد", en: "Irbid" }, deliveryFee: 3.0 },
-  { id: "salt", label: { ar: "السلط", en: "Salt" }, deliveryFee: 3.0 },
+  { id: "jerash", label: { ar: "جرش", en: "Jerash" }, deliveryFee: 3.0 },
+  { id: "ajloun", label: { ar: "عجلون", en: "Ajloun" }, deliveryFee: 3.0 },
+  { id: "mafraq", label: { ar: "المفرق", en: "Mafraq" }, deliveryFee: 3.0 },
+  { id: "karak", label: { ar: "الكرك", en: "Karak" }, deliveryFee: 3.0 },
+  { id: "tafilah", label: { ar: "الطفيلة", en: "Tafilah" }, deliveryFee: 3.0 },
+  { id: "maan", label: { ar: "معان", en: "Ma'an" }, deliveryFee: 3.0 },
   { id: "aqaba", label: { ar: "العقبة", en: "Aqaba" }, deliveryFee: 3.0 },
 ];
 

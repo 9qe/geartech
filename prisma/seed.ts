@@ -2,7 +2,6 @@ import { PrismaClient } from "@prisma/client";
 import {
   PRODUCTS,
   CATEGORIES,
-  GOVERNORATES,
   BUNDLES,
   REELS,
   FREE_DELIVERY_THRESHOLD,
@@ -98,26 +97,25 @@ async function main() {
     }
   }
 
-  // Governorates — all 12 official (fees only where previously configured; others unconfigured)
-  const FULL_GOVS: { slug: string; ar: string; en: string; fee?: number }[] = [
+  // Governorates — all 12 official Jordanian governorates with the
+  // mandated business fees (Salt is a locality of Balqa, not a governorate).
+  const FULL_GOVS: { slug: string; ar: string; en: string; fee: number }[] = [
     { slug: "amman", ar: "عمّان", en: "Amman", fee: 2.0 },
+    { slug: "zarqa", ar: "الزرقاء", en: "Zarqa", fee: 2.5 },
+    { slug: "balqa", ar: "البلقاء", en: "Balqa", fee: 2.5 },
+    { slug: "madaba", ar: "مادبا", en: "Madaba", fee: 2.5 },
     { slug: "irbid", ar: "إربد", en: "Irbid", fee: 3.0 },
-    { slug: "zarqa", ar: "الزرقاء", en: "Zarqa", fee: 3.0 },
-    { slug: "balqa", ar: "البلقاء", en: "Balqa", fee: 3.0 },
-    { slug: "mafraq", ar: "المفرق", en: "Mafraq" },
-    { slug: "ajloun", ar: "عجلون", en: "Ajloun" },
-    { slug: "jerash", ar: "جرش", en: "Jerash" },
-    { slug: "madaba", ar: "مادبا", en: "Madaba" },
-    { slug: "karak", ar: "الكرك", en: "Karak" },
-    { slug: "tafilah", ar: "الطفيلة", en: "Tafilah" },
-    { slug: "maan", ar: "معان", en: "Ma'an" },
+    { slug: "jerash", ar: "جرش", en: "Jerash", fee: 3.0 },
+    { slug: "ajloun", ar: "عجلون", en: "Ajloun", fee: 3.0 },
+    { slug: "mafraq", ar: "المفرق", en: "Mafraq", fee: 3.0 },
+    { slug: "karak", ar: "الكرك", en: "Karak", fee: 3.0 },
+    { slug: "tafilah", ar: "الطفيلة", en: "Tafilah", fee: 3.0 },
+    { slug: "maan", ar: "معان", en: "Ma'an", fee: 3.0 },
     { slug: "aqaba", ar: "العقبة", en: "Aqaba", fee: 3.0 },
   ];
-  // map old slugs (salt) -> balqa
-  const feeBySlug = new Map(GOVERNORATES.map((g) => [g.id, g.deliveryFee]));
   for (let i = 0; i < FULL_GOVS.length; i++) {
     const g = FULL_GOVS[i];
-    const fee = g.fee ?? feeBySlug.get(g.slug) ?? null;
+    const fee = g.fee;
     const gov = await prisma.governorate.upsert({
       where: { slug: g.slug },
       update: { nameAr: g.ar, nameEn: g.en, isActive: true, sortOrder: i },
@@ -126,14 +124,14 @@ async function main() {
     await prisma.shippingRate.upsert({
       where: { governorateId: gov.id },
       update: {
-        deliveryFeeFils: fee ? Math.round(fee * 1000) : 0,
-        isConfigured: !!fee,
+        deliveryFeeFils: Math.round(fee * 1000),
+        isConfigured: true,
         isActive: true,
       },
       create: {
         governorateId: gov.id,
-        deliveryFeeFils: fee ? Math.round(fee * 1000) : 0,
-        isConfigured: !!fee,
+        deliveryFeeFils: Math.round(fee * 1000),
+        isConfigured: true,
         isActive: true,
       },
     });
@@ -251,6 +249,15 @@ async function main() {
           manualViewLabel: r.views,
           isActive: true,
           sortOrder: i,
+        },
+      });
+    } else if (!existing.posterUrl || !existing.productId) {
+      // repair stale rows: DB-truth posters point at product illustrations
+      await prisma.reel.update({
+        where: { id: existing.id },
+        data: {
+          posterUrl: `/products/illustrations/${staticSlug ?? "no-image"}.svg`,
+          productId: prod?.id ?? existing.productId,
         },
       });
     }

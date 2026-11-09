@@ -23,6 +23,7 @@ import {
 } from "@/data/products";
 import type { Product } from "@/data/products";
 import type { ProductDTO } from "@/lib/catalog";
+import type { ReelCard } from "@/components/ReelsFeed";
 import { useStore } from "@/store/useStore";
 import { cn, t } from "@/lib/utils";
 
@@ -64,7 +65,7 @@ function ProductCard({
             {t(product.badge, lang)}
           </span>
         )}
-        {discount > 0 && (
+        {discount > 0 && !product.badge && (
           <span className="absolute end-3 top-3 rounded-full bg-[#14B8A6] px-2 py-1 text-[10px] font-black text-[#060709]">
             -{discount}%
           </span>
@@ -103,7 +104,13 @@ function ProductCard({
   );
 }
 
-export default function HomeClient({ products: dbProducts }: { products: ProductDTO[] }) {
+export default function HomeClient({
+  products: dbProducts,
+  reels,
+}: {
+  products: ProductDTO[];
+  reels: ReelCard[];
+}) {
   const lang = useStore((s) => s.lang);
   const adminProducts = useStore((s) => s.adminProducts);
   const searchQuery = useStore((s) => s.searchQuery);
@@ -261,7 +268,7 @@ export default function HomeClient({ products: dbProducts }: { products: Product
               : "See it in the clip, add it to your cart in one tap."}
           </p>
         </div>
-        <ReelsFeed />
+        <ReelsFeed reels={reels} />
       </section>
 
       {/* ── Products ─────────────────────────────────────────── */}

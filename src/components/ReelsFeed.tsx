@@ -2,29 +2,60 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, ShoppingCart } from "lucide-react";
-import {
-  PRODUCTS,
-  REELS,
-  formatJOD,
-  type ReelVideo,
-} from "@/data/products";
+import { Check, Eye, ShoppingCart } from "lucide-react";
+import { formatJOD, type Product } from "@/data/products";
 import { useStore } from "@/store/useStore";
 import { cn, t } from "@/lib/utils";
 
-export default function ReelsFeed() {
+export interface ReelCard {
+  id: string;
+  title: { ar: string; en: string };
+  videoUrl: string;
+  poster: string | null;
+  viewLabel: string | null;
+  sortOrder: number;
+  product: {
+    id: string;
+    slug: string;
+    title: { ar: string; en: string };
+    price: number;
+    image: string | null;
+  } | null;
+}
+
+const BLANK: { ar: string; en: string } = { ar: "", en: "" };
+
+function productFromReel(reel: ReelCard): Product | null {
+  if (!reel.product) return null;
+  return {
+    id: reel.product.id,
+    slug: reel.product.slug,
+    title: reel.product.title,
+    description: BLANK,
+    price: reel.product.price,
+    compareAt: reel.product.price,
+    badge: null,
+    category: "gadgets",
+    image: reel.product.image ?? reel.poster ?? "",
+    gallery: [],
+    specs: [],
+    installation: BLANK,
+    reviews: [],
+    stock: 0,
+    soldCount: 0,
+    rating: 5,
+  };
+}
+
+export default function ReelsFeed({ reels }: { reels: ReelCard[] }) {
   const lang = useStore((s) => s.lang);
-  const adminProducts = useStore((s) => s.adminProducts);
   const addToCart = useStore((s) => s.addToCart);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [addedId, setAddedId] = useState<string | null>(null);
 
-  const catalog = [...PRODUCTS, ...adminProducts];
-
-  const productFor = (reel: ReelVideo) =>
-    catalog.find((p) => p.id === reel.productIds[0]);
+  const productFor = (reel: ReelCard) => productFromReel(reel);
 
   useEffect(() => {
     const root = scrollRef.current;
@@ -57,7 +88,7 @@ export default function ReelsFeed() {
     return () => clearTimeout(id);
   }, [addedId]);
 
-  const addReelProduct = (reel: ReelVideo) => {
+  const addReelProduct = (reel: ReelCard) => {
     const product = productFor(reel);
     if (!product) return;
     addToCart(product, 1);
@@ -70,7 +101,7 @@ export default function ReelsFeed() {
         ref={scrollRef}
         className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
       >
-          {REELS.map((reel, index) => {
+          {reels.map((reel, index) => {
             const product = productFor(reel);
             const isAdded = addedId === reel.id;
             return (
@@ -88,7 +119,7 @@ export default function ReelsFeed() {
                     if (el) el.muted = true;
                   }}
                   src={reel.videoUrl}
-                  poster={reel.poster}
+                  poster={reel.poster ?? undefined}
                   muted
                   loop
                   playsInline
@@ -98,21 +129,29 @@ export default function ReelsFeed() {
 
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/25 to-black/50" />
 
+                {reel.viewLabel && (
+                  <div className="absolute inset-x-0 top-0 flex items-center justify-between p-3 text-[11px] font-bold text-white/90">
+                    <span className="flex items-center gap-1 rounded-full bg-black/45 px-2 py-1 backdrop-blur">
+                      <Eye className="h-3.5 w-3.5 text-volt" />
+                      {reel.viewLabel}
+                    </span>
+                  </div>
+                )}
+
                 <div className="absolute inset-x-0 bottom-0 space-y-2.5 p-3.5">
-                  <p className="text-sm font-extrabold leading-snug text-volt text-glow-volt">
-                    {t(reel.hook, lang)}
-                  </p>
                   <h3 className="text-base font-extrabold leading-tight text-white">
                     {t(reel.title, lang)}
                   </h3>
-                  <p className="line-clamp-2 text-xs leading-relaxed text-white/70">
-                    {t(reel.caption, lang)}
+                  <p className="text-sm font-extrabold leading-snug text-volt text-glow-volt">
+                    {lang === "ar"
+                      ? "شوف المنتج بالمقطع وضيفه لسلتك بضغطة وحدة."
+                      : "See it in the clip, add it to your cart in one tap."}
                   </p>
 
                   {product && (
                     <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-black/55 p-2 backdrop-blur">
                       <img
-                        src={product.image}
+                        src={product.image || reel.poster || ""}
                         alt={t(product.title, lang)}
                         className="h-10 w-10 shrink-0 rounded-lg object-cover"
                       />

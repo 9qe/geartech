@@ -8,7 +8,7 @@ export default async function CheckoutPage() {
   const governorates = govs.map((g) => ({
     id: g.id,
     label: g.name,
-    deliveryFee: g.rate ? g.rate.feeFils / 1000 : 0,
+    deliveryFee: g.rate ? g.rate.feeFils / 1000 : null,
   }));
   return (
     <CheckoutClient
