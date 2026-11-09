@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "build:static": "node scripts/static-export.mjs",
-    "admin:bootstrap": "tsx scripts/bootstrap-admin.ts"
+    "admin:bootstrap": "tsx scripts/bootstrap-admin.ts",
+    "qa": "tsx scripts/qa-regression.mts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
