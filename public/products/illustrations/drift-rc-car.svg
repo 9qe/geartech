@@ -21,5 +21,4 @@
     <circle cx="-105" cy="20" r="6" fill="#94A3B8" opacity="0.3"/>
     <circle cx="-118" cy="14" r="8" fill="#94A3B8" opacity="0.2"/>
   </g>
-  <text x="200" y="270" text-anchor="middle" font-family="Inter, system-ui" font-size="11" fill="#94A3B8" letter-spacing="2">PRO DRIFT RC CAR 1:16</text>
-</svg>
+  </svg>

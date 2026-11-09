@@ -11,7 +11,7 @@ function toStatic(p: ProductDTO): Product {
     description: p.description,
     price: p.price,
     compareAt: p.compareAt ?? p.price,
-    badge: p.badge ? { ar: p.badge, en: p.badge } : null,
+    badge: p.badge,
     category: (p.categorySlug ?? "gadgets") as Product["category"],
     image: p.primaryImage ?? "/brand/no-image.svg",
     gallery: (p.media ?? []).filter((m) => m.type === "IMAGE").map((m) => m.url),

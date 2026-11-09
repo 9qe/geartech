@@ -74,7 +74,8 @@ export default function CheckoutClient(props: CheckoutProps) {
   );
   const total = discountedSubtotal + deliveryFee;
 
-  const freeDeliveryUnlocked = discountedSubtotal >= FREE_DELIVERY_THRESHOLD;
+  const freeDeliveryUnlocked =
+    (bundle?.freeDelivery ?? false) || discountedSubtotal >= FREE_DELIVERY_THRESHOLD;
   const toFreeDelivery = Math.max(
     0,
     FREE_DELIVERY_THRESHOLD - discountedSubtotal

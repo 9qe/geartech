@@ -52,6 +52,7 @@ async function main() {
         stockQuantity: p.stock,
         trackInventory: true,
         badgeLabel: p.badge?.ar ?? null,
+        badgeLabelEn: p.badge?.en ?? null,
         isActive: true,
         isFeatured: p.soldCount > 1000,
         isBundleEligible: true,
@@ -70,6 +71,7 @@ async function main() {
         stockQuantity: p.stock,
         trackInventory: true,
         badgeLabel: p.badge?.ar ?? null,
+        badgeLabelEn: p.badge?.en ?? null,
         isActive: true,
         isFeatured: p.soldCount > 1000,
         isBundleEligible: true,
@@ -233,7 +235,9 @@ async function main() {
   // Reels (from REELS) — link to products by slug
   for (let i = 0; i < REELS.length; i++) {
     const r = REELS[i];
-    const prod = await prisma.product.findUnique({ where: { slug: r.productIds[0] } });
+    const slugById = new Map(PRODUCTS.map((p: any) => [p.id, p.slug]));
+    const staticSlug = slugById.get(r.productIds[0]);
+    const prod = staticSlug ? await prisma.product.findUnique({ where: { slug: staticSlug } }) : null;
     // skip if no real product link; here all link to real seeded products
     const existing = await prisma.reel.findFirst({ where: { titleEn: r.title.en } });
     if (!existing) {
@@ -242,7 +246,7 @@ async function main() {
           titleAr: r.title.ar,
           titleEn: r.title.en,
           videoUrl: r.videoUrl,
-          posterUrl: r.poster.includes("unsplash") ? null : r.poster,
+          posterUrl: `/products/illustrations/${staticSlug ?? "no-image"}.svg`,
           productId: prod?.id ?? null,
           manualViewLabel: r.views,
           isActive: true,

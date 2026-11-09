@@ -17,7 +17,7 @@ export interface ProductDTO {
   categoryId: string | null;
   categorySlug: string | null;
   categoryName: { ar: string; en: string } | null;
-  badge: string | null;
+  badge: { ar: string; en: string } | null;
   isActive: boolean;
   isFeatured: boolean;
   isBundleEligible: boolean;
@@ -65,7 +65,9 @@ function mapProduct(p: any): ProductDTO {
     categoryId: p.categoryId,
     categorySlug: p.category?.slug ?? null,
     categoryName: p.category ? { ar: p.category.nameAr, en: p.category.nameEn } : null,
-    badge: p.badgeLabel,
+    badge: p.badgeLabel
+      ? { ar: p.badgeLabel, en: p.badgeLabelEn ?? p.badgeLabel }
+      : null,
     isActive: p.isActive,
     isFeatured: p.isFeatured,
     isBundleEligible: p.isBundleEligible,

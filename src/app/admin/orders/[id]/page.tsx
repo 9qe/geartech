@@ -1,10 +1,11 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { fromFils } from "@/lib/money";
 import { getStoreSetting } from "@/lib/pricing";
-import { updateOrderStatusAction, updatePaymentStatusAction, addOrderNoteAction } from "@/app/actions/orders";
-import Link from "next/link";
+import { updateOrderStatusAction, addOrderNoteAction } from "@/app/actions/orders";
+import PaymentStatusSelect from "@/components/admin/PaymentStatusSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -69,16 +70,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               </a>
             )}
           </div>
-          <form action={async (fd) => { "use server"; await updatePaymentStatusAction(order.id, String(fd.get("ps"))); }} className="mt-3 flex gap-2">
-            <select name="ps" defaultValue={order.paymentStatus} className="rounded-lg border border-white/10 bg-[#14171D] px-3 py-2 text-xs text-white outline-none">
-              <option value="PENDING">Pending</option>
-              <option value="AWAITING_VERIFICATION">Awaiting verification</option>
-              <option value="PAID">Paid</option>
-              <option value="FAILED">Failed</option>
-              <option value="REFUNDED">Refunded</option>
-            </select>
-            <button className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/70 transition hover:text-white">تحديث</button>
-          </form>
+          <PaymentStatusSelect orderId={order.id} initial={order.paymentStatus} />
         </div>
       </div>
 

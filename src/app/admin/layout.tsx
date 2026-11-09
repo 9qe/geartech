@@ -6,6 +6,8 @@ const NAV = [
   { href: "/admin", label: "لوحة التحكم", en: "Overview" },
   { href: "/admin/products", label: "المنتجات", en: "Products" },
   { href: "/admin/orders", label: "الطلبات", en: "Orders" },
+  { href: "/admin/bundles", label: "الباقات", en: "Bundles" },
+  { href: "/admin/content", label: "المحتوى", en: "Content" },
   { href: "/admin/settings", label: "الإعدادات", en: "Settings" },
 ];
 

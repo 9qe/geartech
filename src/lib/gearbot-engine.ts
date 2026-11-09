@@ -101,9 +101,10 @@ export const builtinReply = (
     "موصل", "delivery", "cash", "cod", "ship", "shipping",
   ];
   if (has(deliveryTerms)) {
+    const wa = WHATSAPP_NUMBER ? ` (${WHATSAPP_NUMBER})` : "";
     return ar
-      ? `الدفع عند الاستلام متاح بكل محافظات الأردن: عمّان 2 د.أ، الزرقاء وإربد والسلط والعقبة 3 د.أ، والتوصيل مجاني فوق 25 د.أ.\nودي فيه تحويل CliQ: حوّل المبلغ لاسم GearTech وبعدين ابعتلنا لقطة الشاشة على واتساب (${WHATSAPP_NUMBER}) وبنأكدلك الطلب فوراً.`
-      : `Cash on delivery is available across all Jordan governorates: Amman 2 JOD, Zarqa / Irbid / Salt / Aqaba 3 JOD, and free delivery over 25 JOD.\nWe also accept CliQ: transfer the amount to GearTech, then send us the screenshot on WhatsApp (${WHATSAPP_NUMBER}) and we confirm your order right away.`;
+      ? `الدفع عند الاستلام متاح بكل محافظات الأردن: عمّان 2 د.أ، الزرقاء وإربد والسلط والعقبة 3 د.أ، والتوصيل مجاني فوق 25 د.أ.\nودي فيه تحويل CliQ: حوّل المبلغ لاسم GearTech وبعدين ابعتلنا لقطة الشاشة على واتساب${wa} وبنأكدلك الطلب فوراً.`
+      : `Cash on delivery is available across all Jordan governorates: Amman 2 JOD, Zarqa / Irbid / Salt / Aqaba 3 JOD, and free delivery over 25 JOD.\nWe also accept CliQ: transfer the amount to GearTech, then send us the screenshot on WhatsApp${wa} and we confirm your order right away.`;
   }
 
   const bundleTerms = ["باقة", "باقات", "خصم", "bundle", "discount", "offer", "عرض"];

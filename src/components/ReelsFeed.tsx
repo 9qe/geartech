@@ -2,14 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  Heart,
-  ShoppingCart,
-} from "lucide-react";
+import { Check, ShoppingCart } from "lucide-react";
 import {
   PRODUCTS,
   REELS,
@@ -27,8 +20,6 @@ export default function ReelsFeed() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [addedId, setAddedId] = useState<string | null>(null);
-
-  const isRTL = lang === "ar";
 
   const catalog = [...PRODUCTS, ...adminProducts];
 
@@ -66,14 +57,6 @@ export default function ReelsFeed() {
     return () => clearTimeout(id);
   }, [addedId]);
 
-  const scrollByDir = (direction: 1 | -1) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const amount = Math.min(el.clientWidth * 0.85, 420);
-    const sign = isRTL ? -direction : direction;
-    el.scrollBy({ left: sign * amount, behavior: "smooth" });
-  };
-
   const addReelProduct = (reel: ReelVideo) => {
     const product = productFor(reel);
     if (!product) return;
@@ -82,51 +65,11 @@ export default function ReelsFeed() {
   };
 
   return (
-    <section id="reels" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div className="max-w-xl">
-          <p className="mb-2 text-xs font-extrabold uppercase tracking-widest text-volt">
-            {lang === "ar" ? "من إنستغرام" : "From Instagram"}
-          </p>
-          <h2 className="text-2xl font-extrabold text-white sm:text-3xl">
-            {lang === "ar" ? "تسوّق من الريل الفايروسي" : "Shop the Viral Reel"}
-          </h2>
-          <p className="mt-2 text-sm text-white/60">
-            {lang === "ar"
-              ? "شوف المنتج بالمقطع وضيفه لسلتك بضغطة وحدة."
-              : "See it in the clip, add it to your cart in one tap."}
-          </p>
-        </div>
-
-        <div className="hidden gap-2 sm:flex">
-          <button
-            type="button"
-            aria-label={lang === "ar" ? "السابق" : "Previous"}
-            onClick={() => scrollByDir(-1)}
-            className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-volt/50 hover:text-volt"
-          >
-            <ChevronLeft
-              className={cn("h-5 w-5", isRTL && "rotate-180")}
-            />
-          </button>
-          <button
-            type="button"
-            aria-label={lang === "ar" ? "التالي" : "Next"}
-            onClick={() => scrollByDir(1)}
-            className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-volt/50 hover:text-volt"
-          >
-            <ChevronRight
-              className={cn("h-5 w-5", isRTL && "rotate-180")}
-            />
-          </button>
-        </div>
-      </div>
-
-      <div className="relative">
-        <div
-          ref={scrollRef}
-          className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
-        >
+    <div className="relative">
+      <div
+        ref={scrollRef}
+        className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
+      >
           {REELS.map((reel, index) => {
             const product = productFor(reel);
             const isAdded = addedId === reel.id;
@@ -154,17 +97,6 @@ export default function ReelsFeed() {
                 />
 
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/25 to-black/50" />
-
-                <div className="absolute inset-x-0 top-0 flex items-center justify-between p-3 text-[11px] font-bold text-white/90">
-                  <span className="flex items-center gap-1 rounded-full bg-black/45 px-2 py-1 backdrop-blur">
-                    <Eye className="h-3.5 w-3.5 text-volt" />
-                    {reel.views}
-                  </span>
-                  <span className="flex items-center gap-1 rounded-full bg-black/45 px-2 py-1 backdrop-blur">
-                    <Heart className="h-3.5 w-3.5 text-racing" />
-                    {reel.likes}
-                  </span>
-                </div>
 
                 <div className="absolute inset-x-0 bottom-0 space-y-2.5 p-3.5">
                   <p className="text-sm font-extrabold leading-snug text-volt text-glow-volt">
@@ -221,28 +153,7 @@ export default function ReelsFeed() {
             );
           })}
         </div>
-
-        <button
-          type="button"
-          aria-label={lang === "ar" ? "السابق" : "Previous"}
-          onClick={() => scrollByDir(-1)}
-          className="absolute start-0 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-black/60 p-2.5 text-white/80 backdrop-blur transition hover:text-volt sm:grid"
-        >
-          <ChevronLeft className={cn("h-5 w-5", isRTL && "rotate-180")} />
-        </button>
-        <button
-          type="button"
-          aria-label={lang === "ar" ? "التالي" : "Next"}
-          onClick={() => scrollByDir(1)}
-          className="absolute end-0 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-black/60 p-2.5 text-white/80 backdrop-blur transition hover:text-volt sm:grid"
-        >
-          <ChevronRight className={cn("h-5 w-5", isRTL && "rotate-180")} />
-        </button>
-      </div>
-
-      <p className="mt-3 text-center text-xs text-white/40 sm:hidden">
-        {lang === "ar" ? "اسحب لتشوف باقي الريلز" : "Swipe for more reels"}
-      </p>
-    </section>
+      <p className="mt-3 text-center text-xs text-white/40 sm:hidden">Swipe for more reels</p>
+    </div>
   );
 }

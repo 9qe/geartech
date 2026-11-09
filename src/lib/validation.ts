@@ -28,6 +28,7 @@ export const productSchema = z.object({
   trackInventory: z.boolean().default(true),
   categoryId: z.string().optional().nullable(),
   badgeLabel: z.string().trim().optional().nullable(),
+  badgeLabelEn: z.string().trim().optional().nullable(),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
   isBundleEligible: z.boolean().default(false),

@@ -21,5 +21,4 @@
     <rect x="218" y="156" width="6" height="6" rx="1"/><rect x="230" y="156" width="6" height="6" rx="1"/><rect x="242" y="156" width="6" height="6" rx="1"/><rect x="254" y="156" width="6" height="6" rx="1"/><rect x="266" y="156" width="6" height="6" rx="1"/>
     <rect x="286" y="156" width="6" height="6" rx="1"/><rect x="298" y="156" width="6" height="6" rx="1"/><rect x="310" y="156" width="6" height="6" rx="1"/>
   </g>
-  <text x="200" y="210" text-anchor="middle" font-family="Inter, system-ui" font-size="11" fill="#94A3B8" letter-spacing="2">LED MATRIX PANEL</text>
-</svg>
+  </svg>

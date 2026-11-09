@@ -17,6 +17,4 @@
   </g>
   <!-- leather pouch -->
   <rect x="150" y="240" width="100" height="28" rx="6" fill="#1a1f2b" stroke="rgba(255,255,255,0.08)"/>
-  <text x="200" y="258" text-anchor="middle" font-family="Inter, system-ui" font-size="9" fill="#94A3B8">LEATHER POUCH</text>
-  <text x="200" y="285" text-anchor="middle" font-family="Inter, system-ui" font-size="11" fill="#94A3B8" letter-spacing="2">REFLECTIVE SUNSHADE</text>
-</svg>
+  </svg>

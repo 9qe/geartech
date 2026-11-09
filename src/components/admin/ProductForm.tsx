@@ -19,6 +19,7 @@ export interface ProductFormValues {
   trackInventory: boolean;
   categoryId: string | null;
   badgeLabel: string;
+  badgeLabelEn: string;
   isActive: boolean;
   isFeatured: boolean;
   isBundleEligible: boolean;
@@ -45,6 +46,7 @@ const empty: ProductFormValues = {
   trackInventory: true,
   categoryId: null,
   badgeLabel: "",
+  badgeLabelEn: "",
   isActive: true,
   isFeatured: false,
   isBundleEligible: false,
@@ -78,6 +80,7 @@ export default function ProductForm({ mode, categories, initial }: Props) {
         trackInventory: v.trackInventory,
         categoryId: v.categoryId,
         badgeLabel: v.badgeLabel || null,
+        badgeLabelEn: v.badgeLabelEn || null,
         isActive: v.isActive,
         isFeatured: v.isFeatured,
         isBundleEligible: v.isBundleEligible,
@@ -118,7 +121,8 @@ export default function ProductForm({ mode, categories, initial }: Props) {
 
       <div className="grid gap-4 md:grid-cols-2">
         {field("Slug", input("slug"))}
-        {field("Badge", input("badgeLabel"))}
+        {field("Badge (AR)", input("badgeLabel"))}
+        {field("Badge (EN)", input("badgeLabelEn"))}
         {field("العنوان (AR)", input("titleAr"))}
         {field("Title (EN)", input("titleEn"))}
       </div>

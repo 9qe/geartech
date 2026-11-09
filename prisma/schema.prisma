@@ -129,6 +129,7 @@ model Product {
   trackInventory   Boolean   @default(true)
   categoryId       String?
   badgeLabel       String?
+  badgeLabelEn    String?
   isActive         Boolean   @default(true)
   isFeatured       Boolean   @default(false)
   isBundleEligible Boolean   @default(false)

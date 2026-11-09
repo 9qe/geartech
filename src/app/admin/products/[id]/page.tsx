@@ -31,6 +31,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     trackInventory: p.trackInventory,
     categoryId: p.categoryId,
     badgeLabel: p.badgeLabel ?? "",
+    badgeLabelEn: p.badgeLabelEn ?? "",
     isActive: p.isActive,
     isFeatured: p.isFeatured,
     isBundleEligible: p.isBundleEligible,

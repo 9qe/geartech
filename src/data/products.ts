@@ -515,7 +515,7 @@ export const GOVERNORATES: {
 ];
 
 export const FREE_DELIVERY_THRESHOLD = 25.0;
-export const WHATSAPP_NUMBER = "962790000000";
+export const WHATSAPP_NUMBER = "";
 export const BRAND = {
   name: "GearTech",
   handle: "@geartechjo",
