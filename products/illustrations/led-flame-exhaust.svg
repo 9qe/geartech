@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0E1014"/><stop offset="100%" stop-color="#060709"/></linearGradient></defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+  <!-- exhaust tip cylinder -->
+  <g transform="translate(200,150)">
+    <ellipse cx="-60" cy="0" rx="14" ry="40" fill="#1a1f2b" stroke="rgba(255,255,255,0.12)"/>
+    <rect x="-60" y="-40" width="120" height="80" fill="#1a1f2b" stroke="rgba(255,255,255,0.12)"/>
+    <ellipse cx="60" cy="0" rx="14" ry="40" fill="#0b0e14" stroke="rgba(255,255,255,0.12)"/>
+    <!-- carbon fiber texture lines -->
+    <g stroke="rgba(255,255,255,0.04)" stroke-width="1">
+      <line x1="-50" y1="-30" x2="50" y2="-30"/><line x1="-50" y1="-15" x2="50" y2="-15"/>
+      <line x1="-50" y1="0" x2="50" y2="0"/><line x1="-50" y1="15" x2="50" y2="15"/>
+      <line x1="-50" y1="30" x2="50" y2="30"/>
+    </g>
+    <!-- flame glow -->
+    <ellipse cx="75" cy="0" rx="28" ry="22" fill="#FF2A54" opacity="0.25"/>
+    <ellipse cx="78" cy="0" rx="16" ry="12" fill="#FF6B35" opacity="0.4"/>
+    <ellipse cx="82" cy="0" rx="8" ry="6" fill="#FFD23F" opacity="0.6"/>
+    <!-- LED ring -->
+    <ellipse cx="60" cy="0" rx="14" ry="40" fill="none" stroke="#14B8A6" stroke-width="2" opacity="0.7"/>
+  </g>
+  </svg>
